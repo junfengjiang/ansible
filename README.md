@@ -1,3 +1,3 @@
 # ansible
 
-just for lab
+ansible的练习
