@@ -1,0 +1,9 @@
+- hosts: node01
+  remote_user: root
+  roles:
+  - nginx
+- hosts: node02
+  remote_user: root
+  roles:
+  - php
+  - mysql

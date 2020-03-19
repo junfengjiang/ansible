@@ -1,0 +1,70 @@
+#安装软件包
+- hosts: node01
+  remote_user: root
+  tasks:
+  - name: install epel
+    yum: name=epel-release state=latest
+  - name: install nginx
+    yum: name=nginx state=latest
+- hosts: node02
+  remote_user: root
+  tasks:
+  - name: install epel
+    yum: name=epel-release state=latest
+  - name: install php mysql
+    yum: name={{ item }} state=latest
+    with_items:
+    - php-fpm
+    - php-mysql
+    - php-mbstring
+    - php-mcrypt
+    - mariadb-server
+
+#配置并启动服务
+- hosts: node01
+  remote_user: root
+  tasks:
+  - name: mkdir nginx root
+    shell: mkdir -pv /data/nginx/html
+  - name: copy nginx config
+    copy: src=/ansible/index.html dest=/data/nginx/html/
+  - name: copy nginx config
+    copy: src=/ansible/phpMyAdmin-4.4.15-all-languages.tar.gz dest=/data/nginx/html/
+  - name: tar zxvf phpMyAdmin-4.4.15-all-languages.tar.gz
+    shell: tar zxvf /data/nginx/html/phpMyAdmin-4.4.15-all-languages.tar.gz -C /data/nginx/html/
+  - name: copy  pma.sh
+    copy: src=/ansible/node01-pma.sh  dest=/data/nginx/html/
+  - name: exec pma.sh
+    shell: bash /data/nginx/html/node01-pma.sh
+  - name: copy config inc php
+    copy: src=/ansible/config.inc.php dest=/data/nginx/html/pma/
+  - name: copy nginx config jjf.conf
+    copy: src=/ansible/jjf.conf dest=/etc/nginx/conf.d
+  - name: start nginx service
+    service: name=nginx state=restarted
+- hosts: node02
+  remote_user: root
+  tasks:
+  - name: mkdir /var/lib/php/session
+    shell: mkdir -pv /var/lib/php/session/ && chown apache:apache /var/lib/php/session/
+  - name: copy www.conf
+    copy: src=/ansible/www.conf dest=/etc/php-fpm.d/
+  - name: start php-fpm
+    service: name=php-fpm state=restarted
+  - name: copy nginx config
+    copy: src=/ansible/phpMyAdmin-4.4.15-all-languages.tar.gz dest=/appdata/
+  - name: tar zxvf phpMyAdmin-4.0.10.20-all-languages.tar.gz
+    shell: tar zxvf /appdata/phpMyAdmin-4.4.15-all-languages.tar.gz  -C /appdata/
+  - name: copy  pma.sh
+    copy: src=/ansible/node02-pma.sh  dest=/appdata
+  - name: bash pma.sh
+    shell: bash /appdata/node02-pma.sh
+  - name: copy config.inc.php
+    copy: src=/ansible/config.inc.php dest=/appdata/pma
+  - name: copy config index.php
+    copy: src=/ansible/index.php dest=/appdata/
+    tags: copyindexphp
+  - name: copy mariadb config
+    copy: src=/ansible/server.cnf dest=/etc/my.cnf.d/
+  - name: start mysql
+    service: name=mariadb state=restarted
