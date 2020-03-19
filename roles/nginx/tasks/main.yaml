@@ -1,0 +1,24 @@
+- name: install epel 
+  yum: name=epel-release state=latest
+- name: install nginx
+  yum: name=nginx state=latest
+
+- name: mkdir nginx root dir 
+  shell: mkdir -pv /data/nginx/html
+- name: copy nginx homepage
+  copy: src=phpMyAdmin-4.4.15-all-languages.tar.gz dest=/data/nginx/html/
+- name: copy phpmyadmin config file
+  copy: src=phpMyAdmin-4.4.15-all-languages.tar.gz dest=/data/nginx/html/
+- name: tar zxvf phpMyAdmin-4.4.15-all-languages.tar.gz
+  shell: tar zxvf /data/nginx/html/phpMyAdmin-4.4.15-all-languages.tar.gz -C /data/nginx/html/
+- name: copy pma.sh
+  copy: src=node01-pma.sh dest=/data/nginx/html/
+- name: bash pma.sh
+  shell: bash /data/nginx/html/node01-pma.sh
+- name: copy config inc php
+  copy: src=config.inc.php dest=/data/nginx/html/pma/
+- name: copy nginx config jjf.conf
+  copy: src=jjf.conf dest=/etc/nginx/conf.d
+- name: start nginx service
+  service: name=nginx state=restarted
+

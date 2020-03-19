@@ -1,0 +1,28 @@
+- name: install epel
+  yum: name=epel-release state=latest
+- name: install php
+  yum: name={{ item }} state=latest
+  with_items:
+  - php-fpm
+  - php-mysql
+  - php-mbstring
+  - php-mcrypt
+- name: mkdir /var/lib/php/session
+  shell: mkdir -pv /var/lib/php/session/ && chown apache:apache /var/lib/php/session/
+- name: copy www.conf
+  copy: src=www.conf dest=/etc/php-fpm.d/
+- name: start php-fpm
+  service: name=php-fpm state=restarted
+- name: copy phpmyadmin config
+  copy: src=phpMyAdmin-4.4.15-all-languages.tar.gz dest=/appadata/
+- name: tar zxvf phpMyAdmin-4.4.15-all-languages.tar.gz
+  shell: tar zxvf /appdata/phpMyAdmin-4.4.15-all-languages.tar.gz -C /appdata/
+- name: copy pma.sh
+  copy: src=node02-pma.sh dest=/appdata
+- name: bash pma.sh 
+  shell: bash /appdata/node02-pma.sh
+- name: copy config.inc.php 
+  copy: src=config.inc.php dest=/appdata/pma/
+- name: copy config index.php 
+  copy: src=index.php dest=/appdata/ 
+  tags: copyindexphp
